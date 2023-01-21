@@ -16,7 +16,7 @@ public enum URLMacro: ExpressionMacro {
             childAt: 0,
             with: argument
                 .withLabel(.identifier("string"))
-                .withColon(.identifier(": "))
+                .withColon(.identifier(":").withTrailingTrivia(.space))
         )
         return ExprSyntax(
             ForcedValueExprSyntax(
