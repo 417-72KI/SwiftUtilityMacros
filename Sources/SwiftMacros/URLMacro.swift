@@ -1,5 +1,6 @@
 import SwiftSyntax
 import SwiftSyntaxParser
+import SwiftDiagnostics
 import _SwiftSyntaxMacros
 
 public enum URLMacro: ExpressionMacro {
@@ -10,6 +11,14 @@ public enum URLMacro: ExpressionMacro {
         // print(#line, node)
         guard let (arguments, argument) = validate(node.argumentList) else {
             // TODO: compile error
+            context.diagnose(
+                SwiftDiagnostics.Diagnostic(
+                    node: Syntax(node.argumentList),
+                    message: ErrorDiagnostic(
+                        message: "Invalid URL"
+                    )
+                )
+            )
             return ExprSyntax(node)
         }
         let argumentList = arguments.replacing(
@@ -45,4 +54,17 @@ extension URLMacro {
         guard !content.isEmpty else { return nil }
         return (elementList, element)
     }
+}
+
+extension URLMacro {
+    struct ErrorDiagnostic {
+        let message: String
+    }
+}
+
+extension URLMacro.ErrorDiagnostic: DiagnosticMessage {
+    var diagnosticID: MessageID {
+        .init(domain: "SwiftMacros", id: "URLMacro.ErrorDiagnostic")
+    }
+    var severity: DiagnosticSeverity { .error }
 }

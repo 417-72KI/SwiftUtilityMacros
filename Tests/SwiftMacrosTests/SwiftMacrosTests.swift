@@ -50,5 +50,7 @@ final class SwiftMacrosTests: XCTestCase {
             """)
             """##
         )
+        print(context.diagnostics)
+        XCTAssertEqual(context.diagnostics.count, 3)
     }
 }
