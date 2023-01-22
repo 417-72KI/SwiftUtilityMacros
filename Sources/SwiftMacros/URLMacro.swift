@@ -3,6 +3,12 @@ import SwiftSyntaxParser
 import SwiftDiagnostics
 import _SwiftSyntaxMacros
 
+#if canImport(Darwin)
+import struct Foundation.URL
+#elseif canImport(FoundationNetworking)
+import struct FoundationNetworking.URL
+#endif
+
 public enum URLMacro: ExpressionMacro {
     public static func expansion(
         of node: MacroExpansionExprSyntax,
@@ -15,7 +21,7 @@ public enum URLMacro: ExpressionMacro {
                 SwiftDiagnostics.Diagnostic(
                     node: Syntax(node.argumentList),
                     message: ErrorDiagnostic(
-                        message: "Invalid URL"
+                        message: "Invalid URL: `\(node.argumentList.first?.expression.description ?? "")`"
                     )
                 )
             )
@@ -43,15 +49,19 @@ public enum URLMacro: ExpressionMacro {
 extension URLMacro {
     static func validate(_ elementList: TupleExprElementListSyntax?) -> (TupleExprElementListSyntax, TupleExprElementSyntax)? {
         guard let elementList,
-              let element = elementList.first else { return nil }
-        guard let expression = element.expression
+              let element = elementList.first,
+              let expression = element.expression
             .as(StringLiteralExprSyntax.self) else { return nil }
         let segments = expression.segments
-        guard case let .stringSegment(segment) = segments.first else { return nil }
-        guard segment.contentLength.utf8Length > 0 else { return nil }
+        guard case let .stringSegment(segment) = segments.first,
+              segment.contentLength.utf8Length > 0 else { return nil }
+        #if canImport(Darwin) || canImport(FoundationNetworking)
+        guard let _ = URL(string: segment.content.text) else { return nil }
+        #else
         let content = segment.content.text
             .trimmingCharacters(in: .whitespacesAndNewlines)
         guard !content.isEmpty else { return nil }
+        #endif
         return (elementList, element)
     }
 }

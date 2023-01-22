@@ -35,13 +35,13 @@ final class SwiftMacrosTests: XCTestCase {
             transformedSF.description,
             ##"""
             let a = URL(string: "https://apple.com")!
-            let b = URL(string: """
+            let b = #url("""
             https://google.com
-            """)!
+            """)
             let c = URL(string: #"https://github.com"#)!
-            let d = URL(string: #"""
+            let d = #url(#"""
                 https://amazon.com
-                """#)!
+                """#)
             let e = #url("")
             let f = #url("""
             """)
@@ -51,6 +51,6 @@ final class SwiftMacrosTests: XCTestCase {
             """##
         )
         print(context.diagnostics)
-        XCTAssertEqual(context.diagnostics.count, 3)
+        XCTAssertEqual(context.diagnostics.count, 5)
     }
 }
